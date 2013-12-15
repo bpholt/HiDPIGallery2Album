@@ -1,4 +1,3 @@
-
 (function (buttonID, $) {
     'use strict';
 
@@ -14,6 +13,25 @@
             return s;
         }
     });
+
+    function removeEscapes(s) {
+        if (typeof s !== 'string') {
+            return s;
+        }
+
+        return s.replace(/\\/g, '');
+    }
+
+    function objectMap(obj, f) {
+        var key,
+            newObj = {};
+        for (key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                newObj[key] = f(obj[key]);
+            }
+        }
+        return newObj;
+    }
 
     function handleGallery2Response(data) {
         var lines = data.split('\n'),
@@ -60,24 +78,6 @@
 
             images[i] = this;
         });
-
-function removeEscapes(s) {
-  if (typeof s !== 'string') {
-    return s;
-  }
-
-  return s.replace(/\\/g, '');
-}
-
-function objectMap(obj, f) {
-  var key, newObj = {};
-  for (key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      newObj[key] = f(obj[key]);
-    }
-  }
-  return newObj;
-}
 
         $.each(images, function () {
             var data = objectMap(this, removeEscapes),
