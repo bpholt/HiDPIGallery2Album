@@ -64,6 +64,7 @@ textarea {
 span.image {
     float: left;
     padding-right: 2em;
+    padding-bottom: 1em;
 }
 
 li {
