@@ -1,5 +1,7 @@
-(function (buttonID, $) {
+(function ($) {
     'use strict';
+
+    var template = '<a href="/gallery2/d/{name}-2/{title}" title="{description}" rel="lightbox[g2image]"><img src="/gallery2/d/{resized.2.name}-2/{title}" srcset="/gallery2/d/{resized.2.name}-2/{title} 1x, /gallery2/d/{resized.1.name}-2/{title} 2x" alt="{caption}" width="{resized.2.width}" height="{resized.2.height}"/></a>';
 
     $.extend({
         interpolate: function (s, data) {
@@ -33,13 +35,24 @@
         return newObj;
     }
 
+    function addImageToDOM() {
+        var data = objectMap(this, removeEscapes),
+            wrapperTmpl = '<li><span class="image">{img}</span><span class="description"><h2>{caption}</h2><div>{description}</div><span class="html">{html}</span></span></li>',
+            inter = $.extend({
+                img: $.interpolate(template, data),
+                html: ''
+            }, data),
+            $dom = $($.interpolate(wrapperTmpl, inter));
+
+        $dom.find('span.html').text(inter.img);
+
+        $('#container').append($dom);
+    }
+
     function handleGallery2Response(data) {
         var lines = data.split('\n'),
             pattern = /^image\.(.+)\.(\d+)$/,
-            template = '<a href="/gallery2/d/{name}-2/{title}" title="{description}" rel="lightbox[g2image]"><img src="/gallery2/d/{resized.2.name}-2/{title}" srcset="/gallery2/d/{resized.2.name}-2/{title} 1x, /gallery2/d/{resized.1.name}-2/{title} 2x" alt="{caption}" width="{resized.2.width}" height="{resized.2.height}"/></a>',
             images = [];
-
-        $('#container').empty();
 
         $.each(lines, function () {
             var keyVal = this.split('='),
@@ -79,53 +92,45 @@
             images[i] = this;
         });
 
-        $.each(images, function () {
-            var data = objectMap(this, removeEscapes),
-                wrapperTmpl = '<li><span class="image">{img}</span><span class="description"><h2>{caption}</h2><div>{description}</div><span class="html">{html}</span></span></li>',
-                inter = $.extend({
-                    img: $.interpolate(template, data),
-                    html: ''
-                }, data),
-                $dom = $($.interpolate(wrapperTmpl, inter));
-
-            $dom.find('span.html').text(inter.img);
-
-            $('#container').append($dom);
-        });
+        $.each(images, addImageToDOM);
     }
 
-    $(document).ready(function() {
-	    $('form').on('submit', function (e) {
-		    $.post('/gallery2/main.php?g2_controller=remote:GalleryRemote', {
-		        'g2_form[cmd]': 'fetch-album-images',
-		        'g2_form[protocol_version]': '2.4',
-		        'g2_form[set_albumName]': $('#galleryID').val(),
-		        'g2_form[albums_too]': 'no',
-		        'g2_form[random]': 'no',
-		        'g2_form[extrafields]': 'yes',
-		        'g2_form[all_sizes]': 'yes'
-		    }, handleGallery2Response);
+    $(document).ready(function () {
+        $('form').on('submit', function (e) {
+            $.post('/gallery2/main.php?g2_controller=remote:GalleryRemote', {
+                'g2_form[cmd]': 'fetch-album-images',
+                'g2_form[protocol_version]': '2.4',
+                'g2_form[set_albumName]': $('#galleryID').val(),
+                'g2_form[albums_too]': 'no',
+                'g2_form[random]': 'no',
+                'g2_form[extrafields]': 'yes',
+                'g2_form[all_sizes]': 'yes'
+            }, function (data) {
+                $('#container').empty();
 
-                e.preventDefault();
-	    });
-            $('#galleryID').focus();
-            $('#container').on('mouseenter mouseleave', 'li', function (e) {
-                var sel = window.getSelection(),
-                    range,
-                    node;
-                if (e.type === 'mouseleave') {
-                    sel.removeAllRanges();
-                } else if (e.type === 'mouseenter') {
-                    range = document.createRange();
-                    node = $(this).find('span.html')[0].childNodes[0];
-                    
-                    range.setStart(node, 0);
-                    range.setEnd(node, node.length);
-
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                }
+                handleGallery2Response.call(this, data);
             });
+
+            e.preventDefault();
+        });
+        $('#galleryID').focus();
+        $('#container').on('mouseenter mouseleave', 'li', function (e) {
+            var sel = window.getSelection(),
+                range,
+                node;
+            if (e.type === 'mouseleave') {
+                sel.removeAllRanges();
+            } else if (e.type === 'mouseenter') {
+                range = document.createRange();
+                node = $(this).find('span.html')[0].childNodes[0];
+
+                range.setStart(node, 0);
+                range.setEnd(node, node.length);
+
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        });
     });
-}('#doIt', jQuery));
+}(jQuery));
 
