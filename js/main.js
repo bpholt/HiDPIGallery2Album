@@ -61,12 +61,31 @@
             images[i] = this;
         });
 
+function removeEscapes(s) {
+  if (typeof s !== 'string') {
+    return s;
+  }
+
+  return s.replace(/\\/g, '');
+}
+
+function objectMap(obj, f) {
+  var key, newObj = {};
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      newObj[key] = f(obj[key]);
+    }
+  }
+  return newObj;
+}
+
         $.each(images, function () {
-            var wrapperTmpl = '<li><span class="image">{img}</span><span class="description"><h2>{caption}</h2><div>{description}</div><span class="html">{html}</span></span></li>',
+            var data = objectMap(this, removeEscapes),
+                wrapperTmpl = '<li><span class="image">{img}</span><span class="description"><h2>{caption}</h2><div>{description}</div><span class="html">{html}</span></span></li>',
                 inter = $.extend({
-                    img: $.interpolate(template, this),
+                    img: $.interpolate(template, data),
                     html: ''
-                }, this),
+                }, data),
                 $dom = $($.interpolate(wrapperTmpl, inter));
 
             $dom.find('span.html').text(inter.img);
@@ -90,6 +109,23 @@
                 e.preventDefault();
 	    });
             $('#galleryID').focus();
+            $('#container').on('mouseenter mouseleave', 'li', function (e) {
+                var sel = window.getSelection(),
+                    range,
+                    node;
+                if (e.type === 'mouseleave') {
+                    sel.removeAllRanges();
+                } else if (e.type === 'mouseenter') {
+                    range = document.createRange();
+                    node = $(this).find('span.html')[0].childNodes[0];
+                    
+                    range.setStart(node, 0);
+                    range.setEnd(node, node.length);
+
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+            });
     });
 }('#doIt', jQuery));
 
