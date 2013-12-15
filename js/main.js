@@ -97,6 +97,8 @@
 
     $(document).ready(function () {
         $('form').on('submit', function (e) {
+            e.preventDefault();
+
             $.post('/gallery2/main.php?g2_controller=remote:GalleryRemote', {
                 'g2_form[cmd]': 'fetch-album-images',
                 'g2_form[protocol_version]': '2.4',
@@ -110,8 +112,6 @@
 
                 handleGallery2Response.call(this, data);
             });
-
-            e.preventDefault();
         });
         $('#galleryID').focus();
         $('#container').on('mouseenter mouseleave', 'li', function (e) {
