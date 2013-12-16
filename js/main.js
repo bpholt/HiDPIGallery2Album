@@ -96,7 +96,12 @@
     }
 
     $(document).ready(function () {
-        $('form').on('submit', function (e) {
+        var hash = window.location.hash,
+            $form = $('form'),
+            $galleryID = $('#galleryID'),
+            $container = $('#container');
+
+        $form.on('submit', function (e) {
             e.preventDefault();
 
             $.post('/gallery2/main.php?g2_controller=remote:GalleryRemote', {
@@ -108,13 +113,13 @@
                 'g2_form[extrafields]': 'yes',
                 'g2_form[all_sizes]': 'yes'
             }, function (data) {
-                $('#container').empty();
+                $container.empty();
 
                 handleGallery2Response.call(this, data);
             });
         });
-        $('#galleryID').focus();
-        $('#container').on('mouseenter mouseleave', 'li', function (e) {
+        $galleryID.focus();
+        $container.on('mouseenter mouseleave', 'li', function (e) {
             var sel = window.getSelection(),
                 range,
                 node;
@@ -131,6 +136,11 @@
                 sel.addRange(range);
             }
         });
+
+        if (hash && hash.length > 1) {
+            $galleryID.val(hash.substr(1, hash.length));
+            $form.submit();
+        }
     });
 }(jQuery));
 
